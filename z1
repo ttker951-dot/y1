@@ -1,6 +1,3 @@
-
---zy
-
 local old
 old = hookmetamethod(game:GetService("StarterGui"), "__namecall", newcclosure(function(self, ...)
         local method = getnamecallmethod()
@@ -8,8 +5,8 @@ old = hookmetamethod(game:GetService("StarterGui"), "__namecall", newcclosure(fu
         if method == "SetCore" and args[1] == "SendNotification" then
             local options = args[2]
             if type(options) == "table" and 
-               tostring(options.Title) == "TCHUB" and 
-               tostring(options.Text) == "TCHUB" 
+               tostring(options.Title) == "人挤人" and 
+               tostring(options.Text) == "人挤人" 
             then
                 local modifiedOptions = table.clone(options)TCHUB
                 modifiedOptions.Text = "1"
@@ -31,8 +28,8 @@ main.Start = returnnil
 
 
 game:GetService("StarterGui"):SetCore("SendNotification",{
-	Title = "TC HUB",
-	Text = "BY TY",
+	Title = "人挤人中心",
+	Text = "加载中",
 	Duration = 5;
 })
 wait(0.1)
@@ -43,7 +40,7 @@ local Camera = workspace.CurrentCamera
 local workspace = game:GetService("Workspace")  
 local Player = Players.LocalPlayer  
 local ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/kyuansmile/yuanma/refs/heads/main/u"))()
-local win = ui:new("TC HUB")
+local win = ui:new("人挤人中心")
 local UITab1 = win:Tab("公告",'7734068321')
 local UITab2 = win:Tab("通用",'7734068321')
 local UITab3 = win:Tab("范围",'7734068321')
