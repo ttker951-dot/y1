@@ -8,7 +8,7 @@ old = hookmetamethod(game:GetService("StarterGui"), "__namecall", newcclosure(fu
                tostring(options.Title) == "人挤人" and 
                tostring(options.Text) == "人挤人" 
             then
-                local modifiedOptions = table.clone(options)TCHUB
+                local modifiedOptions = table.clone(options)
                 modifiedOptions.Text = "1"
             end
         end
@@ -39,7 +39,7 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera 
 local workspace = game:GetService("Workspace")  
 local Player = Players.LocalPlayer  
-local ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/kyuansmile/yuanma/refs/heads/main/u"))()
+local ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/u1.lua"))()
 local win = ui:new("人挤人中心")
 local UITab1 = win:Tab("公告",'7734068321')
 local UITab2 = win:Tab("通用",'7734068321')
