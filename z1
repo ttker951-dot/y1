@@ -101,6 +101,14 @@ about:Toggle("加速开关", "TranslateAccelToggle", false, function(State)
     end
 end)
 
+about:Button("飞行",function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/rf"))()
+end)
+
+about:Button("减画质",function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/rfb"))()
+end)
+
 -- 大佛功能区
 
 local attackTab = UITab3:section("范围",true)
