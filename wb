@@ -27,6 +27,7 @@ local Whitelisted = {
     ["udnbu"] = true,
     ["wsmmmmmmma"] = true,
     ["iqcnmbj"] = true,
+    ["Robloxmimg"] = true,
  }
 
 local function IsWhitelisted(player)
