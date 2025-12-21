@@ -28,6 +28,7 @@ local Whitelisted = {
     ["wsmmmmmmma"] = true,
     ["iqcnmbj"] = true,
     ["Robloxmimg"] = true,
+    ["MeiQin_0917"] = true,
  }
 
 local function IsWhitelisted(player)
