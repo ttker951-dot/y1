@@ -401,18 +401,28 @@ task.spawn(function()
 end)
 
 -- 自动v4
-
 local toggleKey = "自动v4"
 local autoV4Task = nil
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+
+if not _G.ToggleStates then
+    _G.ToggleStates = {}
+end
+
 
 local function getToggleState(key)
-    if not _G.ToggleStates then _G.ToggleStates = {} end
     return _G.ToggleStates[key] or false
 end
 
 local function callAwakeningRemote()
+    local character = LocalPlayer.Character
+    if not character then return end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid or humanoid.Health <= 0 then return end
+
     local Backpack = LocalPlayer:FindFirstChild("Backpack")
     if not Backpack then return end
     
@@ -430,27 +440,46 @@ local function callAwakeningRemote()
     end
 end
 
+
+local function runAutoV4Loop()
+    if autoV4Task then
+        task.cancel(autoV4Task)
+        autoV4Task = nil
+    end
+
+    autoV4Task = task.spawn(function()
+        while getToggleState(toggleKey) do
+            callAwakeningRemote()
+            task.wait(1) 
+        end
+        autoV4Task = nil
+    end)
+end
+
+
 local function toggleAutoV4(enable)
     if autoV4Task then
         task.cancel(autoV4Task)
         autoV4Task = nil
     end
     
+
     if enable then
-        autoV4Task = task.spawn(function()
-            while getToggleState(toggleKey) do
-                callAwakeningRemote()
-                task.wait(1) 
-            end
-            autoV4Task = nil
-        end)
+        runAutoV4Loop()
     end
 end
 
+LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    newCharacter:WaitForChild("Humanoid")
+    if getToggleState(toggleKey) then
+        toggleAutoV4(true)
+    end
+end)
+
+
 attackTab:Toggle(toggleKey, "Toggle", false, function(IsEnabled)
-    if not _G.ToggleStates then _G.ToggleStates = {} end
     _G.ToggleStates[toggleKey] = IsEnabled
-    
     toggleAutoV4(IsEnabled)
 end)
 
