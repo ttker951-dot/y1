@@ -31,6 +31,7 @@ local Whitelisted = {
     ["MeiQin_0917"] = true,
     ["XuanYU0322"] = true,
     ["net789456789"] = true,
+    ["s105006"] = true,
  }
 
 local function IsWhitelisted(player)
