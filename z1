@@ -112,6 +112,10 @@ end)
 about:Button("移除岩浆",function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/lava"))()
 end)
+
+about:Button("移除雾",function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/fog"))()
+end)
 -- 大佛功能区
 
 local attackTab = UITab3:section("范围",true)
