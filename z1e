@@ -799,7 +799,7 @@ TP1:Button("TP To Mansion", function()
     end
 end)
 
-TP1:Button("TP to the Ghost Ship", function()
+TP1:Button("TP To the Ghost Ship", function()
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
     local targetPosition = Vector3.new(-6501.06, 83.11, -123.52)
@@ -810,7 +810,7 @@ TP1:Button("TP to the Ghost Ship", function()
     end
 end)
 
-TP1:Button("", function()
+TP1:Button("TP To Zombie Island", function()
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
     local targetPosition = Vector3.new(922.78, 123.96, 32842.40)
