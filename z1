@@ -787,7 +787,7 @@ tp3Section:Button("传送至九头蛇", function()
     end
 end)
 
--- ===================== 活动标签页（新增） =====================
+-- ===================== 活动标签页（新增+修复） =====================
 local activitySection = UITab6:section("活动", true)
 
 -- 初始化全局设置（果实相关）
@@ -806,17 +806,61 @@ if not getgenv().SaveSetting then
     end
 end
 
--- 初始化CheckFruits函数（自动存储果实依赖）
-if not getgenv().CheckFruits then
-    getgenv().CheckFruits = function()
-        ResultStoreFruits = ResultStoreFruits or {}
-    end
-end
+-- 果实名称映射表（完整列表）
+local FruitMapping = {
+    {"Rocket Fruit", "Rocket-Rocket"},
+    {"Spin Fruit", "Spin-Spin"},
+    {"Blade Fruit", "Blade-Blade"},
+    {"Spring Fruit", "Spring-Spring"},
+    {"Bomb Fruit", "Bomb-Bomb"},
+    {"Smoke Fruit", "Smoke-Smoke"},
+    {"Spike Fruit", "Spike-Spike"},
+    {"Flame Fruit", "Flame-Flame"},
+    {"Eagle Fruit", "Eagle-Eagle"},
+    {"Ice Fruit", "Ice-Ice"},
+    {"Sand Fruit", "Sand-Sand"},
+    {"Dark Fruit", "Dark-Dark"},
+    {"Diamond Fruit", "Diamond-Diamond"},
+    {"Light Fruit", "Light-Light"},
+    {"Rubber Fruit", "Rubber-Rubber"},
+    {"Creation Fruit", "Creation-Creation"},
+    {"Ghost Fruit", "Ghost-Ghost"},
+    {"Magma Fruit", "Magma-Magma"},
+    {"Quake Fruit", "Quake-Quake"},
+    {"Buddha Fruit", "Buddha-Buddha"},
+    {"Love Fruit", "Love-Love"},
+    {"Spider Fruit", "Spider-Spider"},
+    {"Sound Fruit", "Sound-Sound"},
+    {"Phoenix Fruit", "Phoenix-Phoenix"},
+    {"Portal Fruit", "Portal-Portal"},
+    {"Lightning Fruit", "Lightning-Lightning"},
+    {"Pain Fruit", "Pain-Pain"},
+    {"Blizzard Fruit", "Blizzard-Blizzard"},
+    {"Gravity Fruit", "Gravity-Gravity"},
+    {"Mammoth Fruit", "Mammoth-Mammoth"},
+    {"T-Rex Fruit", "T-Rex-T-Rex"},
+    {"Dough Fruit", "Dough-Dough"},
+    {"Shadow Fruit", "Shadow-Shadow"},
+    {"Venom Fruit", "Venom-Venom"},
+    {"Gas Fruit", "Gas-Gas"},
+    {"Control Fruit", "Control-Control"},
+    {"Spirit Fruit", "Spirit-Spirit"},
+    {"Leopard Fruit", "Leopard-Leopard"},
+    {"Yeti Fruit", "Yeti-Yeti"},
+    {"Kitsune Fruit", "Kitsune-Kitsune"},
+    {"Dragon Fruit", "Dragon-Dragon"}
+}
 
 -- 1. 自动用糖果抽果实功能
 local AutoCandyFruitToggle = activitySection:Toggle("自动用糖果抽果实", "AutoCandyFruitToggle", _G.Settings.Fruit["Auto Buy Candy Fruit"] or false, function(state)
     _G.Settings.Fruit["Auto Buy Candy Fruit"] = state;
     getgenv().SaveSetting()
+    -- 开关状态提示
+    if state then
+        warn("[自动抽果实] 功能已开启")
+    else
+        warn("[自动抽果实] 功能已关闭")
+    end
 end);
 
 task.spawn(function()
@@ -844,44 +888,93 @@ task.spawn(function()
     end
 end);
 
--- 2. 自动存储果实功能
+-- 2. 修复版自动存储果实功能
 local AutoStoreFruitToggle = activitySection:Toggle("自动存储果实", "AutoStoreFruitToggle", _G.Settings.Fruit["Auto Store Fruit"] or false, function(state)
     _G.Settings.Fruit["Auto Store Fruit"] = state;
     getgenv().SaveSetting();
+    getgenv().AutoStoreFruit = state
+    -- 开关状态提示
+    if state then
+        warn("[自动存储果实] 功能已开启")
+    else
+        warn("[自动存储果实] 功能已关闭")
+    end
 end);
 
+-- 自动存储核心循环（修复版）
 task.spawn(function()
     while true do
         task.wait(0.2)
-        pcall(function()
-            if _G.Settings.Fruit["Auto Store Fruit"] then
-                local Backpack = LocalPlayer.Backpack
-                if not Backpack then return end
-                
-                for _, v in pairs(Backpack:GetChildren()) do
-                    if string.find(v.Name, "Fruit") then
-                        ResultStoreFruits = {};
-                        CheckFruits();
-                        
-                        for _, Res in pairs(ResultStoreFruits) do
-                            if v.Name == Res then
-                                local NameFruit = v.Name;
-                                local FirstNameFruit = string.gsub(v.Name, " Fruit", "");
-                                
-                                local fruitObj = Backpack:FindFirstChild(NameFruit)
-                                if fruitObj then
-                                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StoreFruit",
-                                        FirstNameFruit .. "-" .. FirstNameFruit,
-                                        fruitObj);
-                                end
-                            end
+        -- 仅开关开启时执行
+        if not getgenv().AutoStoreFruit then
+            continue
+        end
+
+        -- 完整错误捕获+详细日志
+        local success, err = pcall(function()
+            -- 获取核心对象（增加容错）
+            local LocalPlayer = game:GetService("Players").LocalPlayer
+            if not LocalPlayer then return end
+
+            -- 等待角色加载（避免空值）
+            local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            if not Character then return end
+
+            -- 等待背包加载（带超时）
+            local Backpack = LocalPlayer:WaitForChild("Backpack", 5)
+            if not Backpack then
+                warn("[自动存储] 背包加载超时")
+                return
+            end
+
+            -- 查找远程函数（带超时+存在性检查）
+            local Remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes", 5)
+            local CommF_Remote = Remotes and Remotes:WaitForChild("CommF_", 5)
+            if not CommF_Remote then
+                warn("[自动存储] 未找到CommF_远程函数")
+                return
+            end
+
+            -- 遍历果实映射表
+            for _, fruitData in ipairs(FruitMapping) do
+                local fruitName = fruitData[1]
+                local fruitKey = fruitData[2]
+
+                -- 查找果实（背包/角色身上都检查）
+                local fruitObj = Backpack:FindFirstChild(fruitName) or Character:FindFirstChild(fruitName)
+                if fruitObj then
+                    -- 执行存储调用（增加错误捕获）
+                    local callSuccess, callErr = pcall(function()
+                        CommF_Remote:InvokeServer("StoreFruit", fruitKey, fruitObj)
+                    end)
+
+                    if callSuccess then
+                        warn("[自动存储] 成功存储：", fruitName)
+                        -- 存储成功后移除果实（避免重复处理）
+                        task.wait(0.1)
+                        if fruitObj.Parent then
+                            fruitObj:Destroy()
                         end
+                        break -- 存储一个果实后跳出循环
+                    else
+                        warn("[自动存储] 存储失败：", fruitName, "错误：", callErr)
+                        -- 尝试简化参数调用（兼容不同参数格式）
+                        local simpleArgs = {"StoreFruit", fruitKey:gsub("-", "")}
+                        pcall(function()
+                            CommF_Remote:InvokeServer(unpack(simpleArgs))
+                            warn("[自动存储] 使用简化参数存储成功：", fruitName)
+                        end)
                     end
                 end
             end
-        end);
+        end)
+
+        -- 打印全局错误
+        if not success then
+            warn("[自动存储] 执行出错：", err)
+        end
     end
-end);
+end)
 
 -- 初始化ESP
 task.spawn(function()
