@@ -55,6 +55,7 @@ local Whitelisted = {
     ["jkasmn"] = true,
     ["qq547049"] = true,
     ["warmcore520"] = true,
+    ["JimmyTwT666"] = true,
  }
 
 local function IsWhitelisted(player)
