@@ -49,7 +49,7 @@ local Whitelisted = {
     ["Fr1fiwb"] = true,
     ["ugisusg"] = true,
     ["godme_math"] = true,
-    [""] = true,
+    ["warmcore520"] = true,
  }
 
 local function IsWhitelisted(player)
