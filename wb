@@ -51,6 +51,8 @@ local Whitelisted = {
     ["godme_math"] = true,
     ["warmcore520"] = true,
     ["327odjks"] = true,
+    ["MeiQin_0916"] = true,
+    ["jkasmn"] = true,
  }
 
 local function IsWhitelisted(player)
