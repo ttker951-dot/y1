@@ -1,8 +1,8 @@
--- 服务获取（添加保护，避免服务获取失败）
+
 local StarterGui = game:GetService("StarterGui")
 local Players = game:GetService("Players")
 
--- 白名单配置（去重+格式化，变量名改为TCWhitelist）
+-- 白名单配置
 local TCWhitelist = {
     ["Ddd_yy5"] = true,
     ["huha1234444"] = true,
@@ -68,7 +68,6 @@ local function IsPlayerWhitelisted(player)
         return false
     end
     
-    -- 检测白名单（兼容空名称情况，使用新的变量名TCWhitelist）
     return TCWhitelist[player.Name] or false
 end
 
