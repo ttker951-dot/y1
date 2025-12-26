@@ -56,6 +56,8 @@ local TCWhitelist = {
     ["qq547049"] = true,
     ["JimmyTwT666"] = true,
     ["rxxxssxrrty"] = true,
+    ["Yoo_0303"] = true,
+    ["ggierdifferent"] = true,
 }
 
 -- 白名单检测函数（添加类型检查，增强鲁棒性）
