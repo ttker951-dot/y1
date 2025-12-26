@@ -405,7 +405,83 @@ attackSection:Toggle(toggleKey, "AutoV4Toggle", false, function(IsEnabled)
     toggleAutoV4(IsEnabled)
 end)
 
--- 快速攻击组件恢复逻辑
+-- ===================== 新增：自动V3功能（与V4风格对齐） =====================
+local toggleKeyV3 = "自动v3"
+local autoV3Task = nil
+
+local function callRaceV3Remote()
+    -- 基础防护：检查角色是否存在
+    local character = LocalPlayer.Character
+    if not character then return end
+    
+    -- 检查角色存活状态
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid or humanoid.Health <= 0 then return end
+
+    -- 定位V3激活所需的远程对象
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Remotes = ReplicatedStorage:FindFirstChild("Remotes")
+    if not Remotes then return end
+    
+    local CommE = Remotes:FindFirstChild("CommE")
+    if not CommE or not CommE:IsA("RemoteEvent") then return end
+    
+    -- 安全调用远程事件，增加错误捕获
+    local success, err = pcall(function()
+        CommE:FireServer("ActivateAbility")
+    end)
+    if not success then
+        warn("自动v3调用失败：", err)
+    end
+end
+
+local function runAutoV3Loop()
+    -- 先停止已有循环，防止重复执行
+    if autoV3Task then
+        task.cancel(autoV3Task)
+        autoV3Task = nil
+    end
+
+    -- 启动新的循环任务
+    autoV3Task = task.spawn(function()
+        while getToggleState(toggleKeyV3) do
+            callRaceV3Remote()
+            task.wait(1)  -- 1秒执行一次，与V4保持一致间隔
+        end
+        autoV3Task = nil
+    end)
+end
+
+local function toggleAutoV3(enable)
+    -- 停止已有任务
+    if autoV3Task then
+        task.cancel(autoV3Task)
+        autoV3Task = nil
+    end
+
+    -- 启用时启动循环
+    if enable then
+        runAutoV3Loop()
+    end
+end
+
+-- 角色重生时重启自动V3
+LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    -- 等待角色加载完成
+    newCharacter:WaitForChild("Humanoid")
+    -- 如果开关开启，重启循环
+    if getToggleState(toggleKeyV3) then
+        toggleAutoV3(true)
+    end
+end)
+
+-- 自动V3 UI绑定（添加到范围标签页，与V4相邻）
+attackSection:Toggle(toggleKeyV3, "AutoV3Toggle", false, function(IsEnabled)
+    _G.ToggleStates[toggleKeyV3] = IsEnabled
+    toggleAutoV3(IsEnabled)
+end)
+
+-- ===================== 快速攻击组件恢复逻辑 =====================
 task.spawn(function()
     while true do
         task.wait(1)
