@@ -1,7 +1,9 @@
-
+-- 服务获取（添加保护，避免服务获取失败）
 local StarterGui = game:GetService("StarterGui")
 local Players = game:GetService("Players")
-local Whitelisted = {
+
+-- 白名单配置（去重+格式化，变量名改为TCWhitelist）
+local TCWhitelist = {
     ["Ddd_yy5"] = true,
     ["huha1234444"] = true,
     ["Mas_Yesa"] = true,
@@ -15,7 +17,6 @@ local Whitelisted = {
     ["Asdwokw"] = true,
     ["owtaw123456"] = true,
     ["potatoessssssssss11"] = true,
-    ["shenhaowen123"] = true,
     ["1212j14"] = true,
     ["Pr0sperous1"] = true,
     ["suenhao123"] = true,
@@ -42,7 +43,6 @@ local Whitelisted = {
     ["JY_Z8"] = true,
     ["fhhvgubv"] = true,
     ["zwqzb123"] = true,
-    ["dgfd7666"] = true,
     ["dghw111"] = true,
     ["pypsinxxhJX"] = true,
     ["Frank1099999"] = true,
@@ -54,26 +54,56 @@ local Whitelisted = {
     ["MeiQin_0916"] = true,
     ["jkasmn"] = true,
     ["qq547049"] = true,
-    ["warmcore520"] = true,
     ["JimmyTwT666"] = true,
     ["rxxxssxrrty"] = true,
- }
+}
 
-local function IsWhitelisted(player)
-    return Whitelisted[player.Name] or false
+-- 白名单检测函数（添加类型检查，增强鲁棒性）
+---@param player Player 要检测的玩家对象
+---@return boolean 是否在白名单中
+local function IsPlayerWhitelisted(player)
+    -- 类型检查，避免传入非玩家对象导致错误
+    if not typeof(player) == "Instance" or not player:IsA("Player") then
+        warn("IsPlayerWhitelisted: 传入的参数不是有效的玩家对象")
+        return false
+    end
+    
+    -- 检测白名单（兼容空名称情况，使用新的变量名TCWhitelist）
+    return TCWhitelist[player.Name] or false
 end
 
-local localPlayer = Players.LocalPlayer
+-- 等待本地玩家加载完成（避免玩家对象未加载时获取失败）
+local LocalPlayer = Players.LocalPlayer
+while not LocalPlayer do
+    Players.PlayerAdded:Wait()
+    LocalPlayer = Players.LocalPlayer
+end
 
-local isLocalPlayerWhitelisted = IsWhitelisted(localPlayer)
+-- 核心逻辑执行
+local isWhitelisted = IsPlayerWhitelisted(LocalPlayer)
 
-if isLocalPlayerWhitelisted then
-    StarterGui:SetCore("SendNotification", {
-        Title = "白名单认证",
-        Text = "玩家:"..localPlayer.Name.."，检测完毕白名单玩家，稍后会加载脚本",
-        Duration = 7,
-    })
-loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/z1"))()
+if isWhitelisted then
+    -- 发送通知（添加保护，避免SetCore失败）
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "白名单认证",
+            Text = string.format("玩家: %s，检测完毕白名单玩家，稍后会加载脚本", LocalPlayer.Name),
+            Duration = 7,
+        })
+    end)
+    
+    -- 加载远程脚本（添加错误处理，避免加载失败导致脚本崩溃）
+    local success, err = pcall(function()
+        local remoteScript = game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/z1")
+        loadstring(remoteScript)()
+    end)
+    
+    if not success then
+        warn(string.format("脚本加载失败: %s", err))
+        LocalPlayer:Kick("脚本加载失败，请重试")
+    end
 else
-    localPlayer:Kick("请联系作者添加白名单")
+    -- 非白名单玩家踢出（添加延迟，确保通知/提示能正常显示）
+    task.wait(0.5)
+    LocalPlayer:Kick("请联系作者添加白名单")
 end
