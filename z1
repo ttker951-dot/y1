@@ -49,7 +49,9 @@ local UITab6 = win:Tab("活动",'7734068321') -- 新增活动标签页
 local noticeSection = UITab1:section("公告", true)
 noticeSection:Label("kismile制作")
 noticeSection:Label("脚本测试中")
-
+noticeSection:Label("禁止乱打")
+noticeSection:Label("禁止乱打")
+noticeSection:Label("禁止乱打")
 
 -- ===================== 通用标签页 =====================
 local generalSection = UITab2:section("通用", true)
