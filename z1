@@ -49,12 +49,7 @@ local UITab6 = win:Tab("活动",'7734068321') -- 新增活动标签页
 local noticeSection = UITab1:section("公告", true)
 noticeSection:Label("kismile制作")
 noticeSection:Label("脚本测试中")
-noticeSection:Label("通缉")
-noticeSection:Label("NK团")
-noticeSection:Label("LX团")
-noticeSection:Label("名字前缀为NK_ LX_")
-noticeSection:Label("尤其是纯情の轩")
-noticeSection:Label("他是傻逼")
+
 
 -- ===================== 通用标签页 =====================
 local generalSection = UITab2:section("通用", true)
