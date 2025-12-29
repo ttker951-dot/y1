@@ -39,7 +39,7 @@ local win = ui:new("人挤人中心")
 
 -- 创建标签页
 local UITab1 = win:Tab("公告",'7734068321')
-local UITab2 = win:Tab("通用",'7734068321')
+local UITab2 = win:Tab("功能",'7734068321')
 local UITab3 = win:Tab("范围",'7734068321')
 local UITab4 = win:Tab("透视",'7734068321')
 local UITab5 = win:Tab("传送",'7734068321')
