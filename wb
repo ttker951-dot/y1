@@ -61,6 +61,7 @@ local TCWhitelist = {
     ["liU8LIU"] = true,
     ["bruce_dog555"] = true,
     ["lonelybf1"] = true,
+    ["suhuizhilian"] = true,
 }
 
 -- 白名单检测函数（添加类型检查，增强鲁棒性）
