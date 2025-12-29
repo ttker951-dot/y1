@@ -483,7 +483,7 @@ task.spawn(function()
     while true do
         task.wait(1)
         if not _ENV.rz_FastAttack and _G.FastAttack then
-            warn("快速攻击组件未完全加载，尝试恢复...")
+            warn("快速攻击组件未完全加载 尝试恢复...")
             FastAttackModule = FastAttackModule or (function()
                 local FastAttack = {
                     Distance=2500,
