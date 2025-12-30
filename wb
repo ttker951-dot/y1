@@ -67,6 +67,7 @@ local TCWhitelist = {
     ["Asdwokw"] = true,
     ["opxatnm"] = true,
     ["sjqgduf6"] = true,
+    ["lt0827"] = true,
 }
 
 -- 白名单检测函数（添加类型检查，增强鲁棒性）
