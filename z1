@@ -1127,20 +1127,6 @@ local function equipSword()
         return true
     end
     
-    -- 尝试使用EquipEvent
-    local backpack = LocalPlayer:FindFirstChild("Backpack")
-    if backpack then
-        local sword = backpack:FindFirstChild(SWORD_NAME)
-        if sword then
-            local equipEvent = sword:FindFirstChild("EquipEvent")
-            if equipEvent and equipEvent:IsA("RemoteEvent") then
-                pcall(function()
-                    equipEvent:FireServer(true)
-                end)
-            end
-        end
-    end
-    
     -- 检查是否装备成功
     task.wait(0.5)
     return hasSwordEquipped()
@@ -1220,7 +1206,6 @@ local function startBuddhaLoop()
         buddhaTask = nil
     end)
 end
-
 
 LocalPlayer.CharacterAdded:Connect(function()
     if AUTO_BUDDHA_ENABLED then
