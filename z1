@@ -40,10 +40,10 @@ local win = ui:new("人挤人中心")
 -- 创建标签页
 local UITab1 = win:Tab("公告",'7734068321')
 local UITab2 = win:Tab("功能",'7734068321')
-local UITab3 = win:Tab("范围",'7734068321')
+local UITab3 = win:Tab("大佛",'7734068321')
 local UITab4 = win:Tab("透视",'7734068321')
 local UITab5 = win:Tab("传送",'7734068321')
-local UITab6 = win:Tab("活动",'7734068321') -- 新增活动标签页
+local UITab6 = win:Tab("功能2",'7734068321')
 
 -- ===================== 公告标签页 =====================
 local noticeSection = UITab1:section("公告", true)
@@ -124,11 +124,7 @@ generalSection:Button("移除雾", function()
     end)
 end)
 
-generalSection:Button("自动地下城", function()
-    pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/at%20fb"))()
-    end)
-end)
+
 -- ===================== 范围攻击标签页 =====================
 local attackSection = UITab3:section("范围", true)
 
@@ -137,6 +133,37 @@ local _ENV = (getgenv or getrenv or getfenv)()
 local Settings = {AutoClick = true, ClickDelay = 0.3}
 local _G = _G or getfenv(0)._G
 _G.FastAttack = _G.FastAttack ~= nil and _G.FastAttack or true
+-- Auto Haki配置
+local AutoHakiEnabled = false
+local autoHakiTask = nil
+
+-- Auto Haki循环函数
+local function startAutoHakiLoop()
+    if autoHakiTask then
+        task.cancel(autoHakiTask)
+        autoHakiTask = nil
+    end
+    
+    autoHakiTask = task.spawn(function()
+        while AutoHakiEnabled do
+            task.wait(0.2)
+            if AutoHakiEnabled and LocalPlayer.Character and not LocalPlayer.Character:FindFirstChild("HasBuso") then
+                pcall(function()
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("Buso")
+                end)
+            end
+        end
+        autoHakiTask = nil
+    end)
+end
+
+-- 角色重生时重启Auto Haki
+LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    if AutoHakiEnabled then
+        task.wait(2) -- 等待角色完全加载
+        startAutoHakiLoop()
+    end
+end)
 
 -- 工具函数
 local function SafeWaitForChild(parent, childName, timeout)
@@ -407,20 +434,17 @@ attackSection:Toggle(toggleKey, "AutoV4Toggle", false, function(IsEnabled)
     toggleAutoV4(IsEnabled)
 end)
 
--- ===================== 新增：自动V3功能（与V4风格对齐） =====================
+-- 自动V3功能
 local toggleKeyV3 = "自动v3"
 local autoV3Task = nil
 
 local function callRaceV3Remote()
-    -- 基础防护：检查角色是否存在
     local character = LocalPlayer.Character
     if not character then return end
     
-    -- 检查角色存活状态
     local humanoid = character:FindFirstChildOfClass("Humanoid")
     if not humanoid or humanoid.Health <= 0 then return end
 
-    -- 定位V3激活所需的远程对象
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local Remotes = ReplicatedStorage:FindFirstChild("Remotes")
     if not Remotes then return end
@@ -428,7 +452,6 @@ local function callRaceV3Remote()
     local CommE = Remotes:FindFirstChild("CommE")
     if not CommE or not CommE:IsA("RemoteEvent") then return end
     
-    -- 安全调用远程事件，增加错误捕获
     local success, err = pcall(function()
         CommE:FireServer("ActivateAbility")
     end)
@@ -438,30 +461,26 @@ local function callRaceV3Remote()
 end
 
 local function runAutoV3Loop()
-    -- 先停止已有循环，防止重复执行
     if autoV3Task then
         task.cancel(autoV3Task)
         autoV3Task = nil
     end
 
-    -- 启动新的循环任务
     autoV3Task = task.spawn(function()
         while getToggleState(toggleKeyV3) do
             callRaceV3Remote()
-            task.wait(1)  -- 1秒执行一次，与V4保持一致间隔
+            task.wait(1)
         end
         autoV3Task = nil
     end)
 end
 
 local function toggleAutoV3(enable)
-    -- 停止已有任务
     if autoV3Task then
         task.cancel(autoV3Task)
         autoV3Task = nil
     end
 
-    -- 启用时启动循环
     if enable then
         runAutoV3Loop()
     end
@@ -469,20 +488,31 @@ end
 
 -- 角色重生时重启自动V3
 LocalPlayer.CharacterAdded:Connect(function(newCharacter)
-    -- 等待角色加载完成
     newCharacter:WaitForChild("Humanoid")
-    -- 如果开关开启，重启循环
     if getToggleState(toggleKeyV3) then
         toggleAutoV3(true)
     end
 end)
 
--- 自动V3 UI绑定（添加到范围标签页，与V4相邻）
+-- 自动V3 UI绑定
 attackSection:Toggle(toggleKeyV3, "AutoV3Toggle", false, function(IsEnabled)
     _G.ToggleStates[toggleKeyV3] = IsEnabled
     toggleAutoV3(IsEnabled)
 end)
 
+attackSection:Toggle("自动武装色", "AutoHakiToggle", true, function(state)
+    AutoHakiEnabled = state
+    if state then
+        startAutoHakiLoop()
+        warn("[自动武装色] 功能已开启")
+    else
+        if autoHakiTask then
+            task.cancel(autoHakiTask)
+            autoHakiTask = nil
+        end
+        warn("[自动武装色] 功能已关闭")
+    end
+end)
 -- ===================== 快速攻击组件恢复逻辑 =====================
 task.spawn(function()
     while true do
@@ -499,9 +529,6 @@ task.spawn(function()
                     consecutiveFailures=0,
                     maxConsecutiveFailures=5
                 }
-
-                -- 重复的FastAttack实现逻辑（与上方一致，省略以简化代码）
-                -- 完整逻辑已在上方定义，此处仅做恢复引用
                 _ENV.rz_FastAttack = FastAttack
                 return FastAttack
             end)()
@@ -526,7 +553,6 @@ local ESPElements = {}
 local function CleanupPlayerESP(player)
     if not ESPElements[player.UserId] then return end
     
-    -- 清理名字/距离/血量ESP
     if ESPElements[player.UserId].NameHealthESP then
         ESPElements[player.UserId].NameHealthESP:Destroy()
         ESPElements[player.UserId].NameHealthESP = nil
@@ -536,7 +562,6 @@ local function CleanupPlayerESP(player)
         ESPElements[player.UserId].NameHealthUpdateConn = nil
     end
     
-    -- 清理射线ESP
     if ESPElements[player.UserId].Tracer then
         ESPElements[player.UserId].Tracer:Remove()
         ESPElements[player.UserId].Tracer = nil
@@ -552,12 +577,10 @@ local function CreateNameDistanceHealthESP(player)
     if not player.Character or not player.Character:FindFirstChild("Head") then return end
     local head = player.Character.Head
     
-    -- 销毁旧的ESP
     if ESPElements[player.UserId] and ESPElements[player.UserId].NameHealthESP then
         ESPElements[player.UserId].NameHealthESP:Destroy()
     end
     
-    -- 创建BillboardGui
     local billboardGui = Instance.new("BillboardGui")
     billboardGui.Name = "NameDistanceHealthESP"
     billboardGui.Adornee = head
@@ -566,7 +589,6 @@ local function CreateNameDistanceHealthESP(player)
     billboardGui.AlwaysOnTop = true
     billboardGui.Parent = head
     
-    -- 名字标签
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Parent = billboardGui
     nameLabel.BackgroundTransparency = 1
@@ -576,7 +598,6 @@ local function CreateNameDistanceHealthESP(player)
     nameLabel.TextScaled = true 
     nameLabel.Font = Enum.Font.GothamSemibold
     
-    -- 血量标签
     local healthLabel = Instance.new("TextLabel")
     healthLabel.Parent = billboardGui
     healthLabel.BackgroundTransparency = 1
@@ -586,7 +607,6 @@ local function CreateNameDistanceHealthESP(player)
     healthLabel.TextScaled = true 
     healthLabel.Font = Enum.Font.Gotham
     
-    -- 距离标签
     local distanceLabel = Instance.new("TextLabel")
     distanceLabel.Parent = billboardGui
     distanceLabel.BackgroundTransparency = 1
@@ -596,13 +616,11 @@ local function CreateNameDistanceHealthESP(player)
     distanceLabel.TextScaled = true
     distanceLabel.Font = Enum.Font.Gotham
     
-    -- 更新连接
     local updateConnection = RunService.RenderStepped:Connect(function()
         if not billboardGui.Parent or not LocalPlayer.Character or not player.Character then 
             return 
         end
         
-        -- 更新距离
         local localRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         local targetRoot = player.Character:FindFirstChild("HumanoidRootPart")
         if localRoot and targetRoot then
@@ -610,27 +628,24 @@ local function CreateNameDistanceHealthESP(player)
             distanceLabel.Text = string.format("%.1f米", distance)   
         end
         
-        -- 更新血量
         local humanoid = player.Character:FindFirstChild("Humanoid")
         if humanoid then
             local health = math.floor(humanoid.Health)
             local maxHealth = math.floor(humanoid.MaxHealth)
             
-            -- 血量颜色渐变
             local healthPercent = health / maxHealth
             if healthPercent > 0.7 then
-                healthLabel.TextColor3 = Color3.new(0, 1, 0) -- 绿色
+                healthLabel.TextColor3 = Color3.new(0, 1, 0)
             elseif healthPercent > 0.3 then
-                healthLabel.TextColor3 = Color3.new(1, 1, 0) -- 黄色
+                healthLabel.TextColor3 = Color3.new(1, 1, 0)
             else
-                healthLabel.TextColor3 = Color3.new(1, 0, 0) -- 红色
+                healthLabel.TextColor3 = Color3.new(1, 0, 0)
             end
             
             healthLabel.Text = string.format("血量: %d/%d", health, maxHealth)
         end
     end)
     
-    -- 存储ESP元素
     ESPElements[player.UserId] = ESPElements[player.UserId] or {}
     ESPElements[player.UserId].NameHealthESP = billboardGui
     ESPElements[player.UserId].NameHealthUpdateConn = updateConnection
@@ -638,19 +653,16 @@ end
 
 -- 创建射线ESP
 local function CreateTracerESP(player)
-    -- 销毁旧射线
     if ESPElements[player.UserId] and ESPElements[player.UserId].Tracer then
         ESPElements[player.UserId].Tracer:Remove()
     end
     
-    -- 创建新射线
     local tracer = Drawing.new("Line")
     tracer.Color = Color3.new(1, 0, 0)
     tracer.Thickness = 2
     tracer.Transparency = 0.8
     tracer.Visible = false
     
-    -- 渲染连接
     local renderConnection = RunService.RenderStepped:Connect(function()
         if not ESPConfig.MainSwitch or not ESPConfig.ShowTracer then
             tracer.Visible = false
@@ -679,7 +691,6 @@ local function CreateTracerESP(player)
         end
     end)
     
-    -- 存储射线元素
     ESPElements[player.UserId] = ESPElements[player.UserId] or {}
     ESPElements[player.UserId].Tracer = tracer
     ESPElements[player.UserId].TracerConn = renderConnection
@@ -689,13 +700,11 @@ end
 local function UpdatePlayerESP(player)
     if player == LocalPlayer then return end
     
-    -- 清理无效ESP
     if not player.Character or not player.Character:FindFirstChild("Head") or not player.Character:FindFirstChild("HumanoidRootPart") then
         CleanupPlayerESP(player)
         return
     end
     
-    -- 更新ESP
     if ESPConfig.MainSwitch then
         CreateTracerESP(player)
         
@@ -736,17 +745,14 @@ end
 Players.PlayerAdded:Connect(function(player)
     if player == LocalPlayer then return end
     
-    -- 初始化玩家ESP
     if player.Character then
         task.spawn(HandlePlayerRespawn, player)
     end
     
-    -- 重生处理
     player.CharacterAdded:Connect(function()
         task.spawn(HandlePlayerRespawn, player)
     end)
     
-    -- 角色移除时清理ESP
     player.CharacterRemoving:Connect(function()
         CleanupPlayerESP(player)
     end)
@@ -871,8 +877,8 @@ tp3Section:Button("传送至九头蛇", function()
     end
 end)
 
--- ===================== 活动标签页（新增+修复） =====================
-local activitySection = UITab6:section("活动", true)
+-- ===================== 活动标签页（新增自动开佛拿刀） =====================
+local activitySection = UITab6:section("功能", true)
 
 -- 初始化全局设置（果实相关）
 if not _G.Settings then
@@ -939,7 +945,6 @@ local FruitMapping = {
 local AutoCandyFruitToggle = activitySection:Toggle("自动用糖果抽果实", "AutoCandyFruitToggle", _G.Settings.Fruit["Auto Buy Candy Fruit"] or false, function(state)
     _G.Settings.Fruit["Auto Buy Candy Fruit"] = state;
     getgenv().SaveSetting()
-    -- 开关状态提示
     if state then
         warn("[自动抽果实] 功能已开启")
     else
@@ -977,7 +982,6 @@ local AutoStoreFruitToggle = activitySection:Toggle("自动存储果实", "AutoS
     _G.Settings.Fruit["Auto Store Fruit"] = state;
     getgenv().SaveSetting();
     getgenv().AutoStoreFruit = state
-    -- 开关状态提示
     if state then
         warn("[自动存储果实] 功能已开启")
     else
@@ -989,29 +993,23 @@ end);
 task.spawn(function()
     while true do
         task.wait(0.2)
-        -- 仅开关开启时执行
         if not getgenv().AutoStoreFruit then
             continue
         end
 
-        -- 完整错误捕获+详细日志
         local success, err = pcall(function()
-            -- 获取核心对象（增加容错）
             local LocalPlayer = game:GetService("Players").LocalPlayer
             if not LocalPlayer then return end
 
-            -- 等待角色加载（避免空值）
             local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
             if not Character then return end
 
-            -- 等待背包加载（带超时）
             local Backpack = LocalPlayer:WaitForChild("Backpack", 5)
             if not Backpack then
                 warn("[自动存储] 背包加载超时")
                 return
             end
 
-            -- 查找远程函数（带超时+存在性检查）
             local Remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes", 5)
             local CommF_Remote = Remotes and Remotes:WaitForChild("CommF_", 5)
             if not CommF_Remote then
@@ -1019,30 +1017,25 @@ task.spawn(function()
                 return
             end
 
-            -- 遍历果实映射表
             for _, fruitData in ipairs(FruitMapping) do
                 local fruitName = fruitData[1]
                 local fruitKey = fruitData[2]
 
-                -- 查找果实（背包/角色身上都检查）
                 local fruitObj = Backpack:FindFirstChild(fruitName) or Character:FindFirstChild(fruitName)
                 if fruitObj then
-                    -- 执行存储调用（增加错误捕获）
                     local callSuccess, callErr = pcall(function()
                         CommF_Remote:InvokeServer("StoreFruit", fruitKey, fruitObj)
                     end)
 
                     if callSuccess then
                         warn("[自动存储] 成功存储：", fruitName)
-                        -- 存储成功后移除果实（避免重复处理）
                         task.wait(0.1)
                         if fruitObj.Parent then
                             fruitObj:Destroy()
                         end
-                        break -- 存储一个果实后跳出循环
+                        break
                     else
                         warn("[自动存储] 存储失败：", fruitName, "错误：", callErr)
-                        -- 尝试简化参数调用（兼容不同参数格式）
                         local simpleArgs = {"StoreFruit", fruitKey:gsub("-", "")}
                         pcall(function()
                             CommF_Remote:InvokeServer(unpack(simpleArgs))
@@ -1053,14 +1046,211 @@ task.spawn(function()
             end
         end)
 
-        -- 打印全局错误
         if not success then
             warn("[自动存储] 执行出错：", err)
         end
     end
 end)
 
--- 初始化ESP
+-- ===================== 新增：自动开佛拿刀功能 =====================
+-- 配置
+local AUTO_BUDDHA_ENABLED = false
+local CHECK_INTERVAL = 5
+local BUDDHA_SLOT = 2
+local SWORD_SLOT = 3
+local BUDDHA_MIN_SIZE = 20.0
+local SWORD_NAME = "Cursed Dual Katana"
+
+-- 检测Buddha形态
+local function isBuddhaForm()
+    local character = LocalPlayer.Character
+    if not character then return false end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return false end
+    
+    local sizeMagnitude = humanoidRootPart.Size.Magnitude
+    return sizeMagnitude > BUDDHA_MIN_SIZE
+end
+
+-- 按下数字键切换栏位
+local function pressNumberKey(number)
+    local virtualInput = game:GetService("VirtualInputManager")
+    local keyCode
+    
+    if number == 1 then keyCode = Enum.KeyCode.One
+    elseif number == 2 then keyCode = Enum.KeyCode.Two
+    elseif number == 3 then keyCode = Enum.KeyCode.Three
+    elseif number == 4 then keyCode = Enum.KeyCode.Four
+    elseif number == 5 then keyCode = Enum.KeyCode.Five
+    elseif number == 6 then keyCode = Enum.KeyCode.Six
+    elseif number == 7 then keyCode = Enum.KeyCode.Seven
+    elseif number == 8 then keyCode = Enum.KeyCode.Eight
+    else keyCode = Enum.KeyCode.Nine end
+    
+    virtualInput:SendKeyEvent(true, keyCode, false, nil)
+    task.wait(0.05)
+    virtualInput:SendKeyEvent(false, keyCode, false, nil)
+end
+
+-- 按下Z键
+local function pressZKey()
+    local virtualInput = game:GetService("VirtualInputManager")
+    
+    virtualInput:SendKeyEvent(true, Enum.KeyCode.Z, false, nil)
+    task.wait(0.1)
+    virtualInput:SendKeyEvent(false, Enum.KeyCode.Z, false, nil)
+end
+
+-- 检查是否持有刀
+local function hasSwordEquipped()
+    local character = LocalPlayer.Character
+    if not character then return false end
+    
+    for _, child in ipairs(character:GetChildren()) do
+        if child:IsA("Tool") and child.Name == SWORD_NAME then
+            return true
+        end
+    end
+    
+    return false
+end
+
+-- 装备刀
+local function equipSword()
+    -- 先切换到刀的栏位
+    pressNumberKey(SWORD_SLOT)
+    task.wait(0.3)
+    
+    -- 检查是否已经装备
+    if hasSwordEquipped() then
+        return true
+    end
+    
+    -- 尝试使用EquipEvent
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    if backpack then
+        local sword = backpack:FindFirstChild(SWORD_NAME)
+        if sword then
+            local equipEvent = sword:FindFirstChild("EquipEvent")
+            if equipEvent and equipEvent:IsA("RemoteEvent") then
+                pcall(function()
+                    equipEvent:FireServer(true)
+                end)
+            end
+        end
+    end
+    
+    -- 检查是否装备成功
+    task.wait(0.5)
+    return hasSwordEquipped()
+end
+
+-- 变身Buddha
+local function performBuddhaTransformation()
+    local character = LocalPlayer.Character
+    if not character then
+        return false
+    end
+    
+    -- 切换到Buddha工具
+    pressNumberKey(BUDDHA_SLOT)
+    task.wait(0.5)
+    
+    -- 按Z键变身
+    pressZKey()
+    
+    -- 等待并检查变身结果
+    local waitTime = 0
+    local maxWaitTime = 3
+    
+    while waitTime < maxWaitTime do
+        task.wait(0.1)
+        waitTime = waitTime + 0.1
+        
+        if isBuddhaForm() then
+            return true
+        end
+    end
+    
+    return false
+end
+
+-- 自动开佛拿刀主循环
+local buddhaTask = nil
+local function startBuddhaLoop()
+    if buddhaTask then
+        task.cancel(buddhaTask)
+        buddhaTask = nil
+    end
+    
+    buddhaTask = task.spawn(function()
+        local lastCheckTime = 0
+        
+        while AUTO_BUDDHA_ENABLED do
+            task.wait(1)
+            
+            local currentTime = tick()
+            if currentTime - lastCheckTime >= CHECK_INTERVAL then
+                lastCheckTime = currentTime
+                
+                if not LocalPlayer.Character then
+                    -- 等待角色
+                else
+                    if isBuddhaForm() then
+                        -- 检查并装备刀
+                        if not hasSwordEquipped() then
+                            equipSword()
+                        end
+                    else
+                        -- 执行变身
+                        local success = performBuddhaTransformation()
+                        
+                        if success then
+                            -- 变身后装备刀
+                            task.wait(0.5)
+                            if not hasSwordEquipped() then
+                                equipSword()
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        buddhaTask = nil
+    end)
+end
+
+
+LocalPlayer.CharacterAdded:Connect(function()
+    if AUTO_BUDDHA_ENABLED then
+        task.wait(2)
+        startBuddhaLoop()
+    end
+end)
+
+-- 自动开佛拿刀开关
+local autoBuddhaToggle = activitySection:Toggle("自动变身大佛＋拿刀", "AutoBuddhaToggle", false, function(state)
+    AUTO_BUDDHA_ENABLED = state
+    if state then
+        startBuddhaLoop()
+        warn("[自动变佛＋拿刀] 功能已开启")
+    else
+        if buddhaTask then
+            task.cancel(buddhaTask)
+            buddhaTask = nil
+        end
+        warn("[自动变佛＋拿刀] 功能已关闭")
+    end
+end)
+
+activitySection:Button("自动地下城", function()
+    pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/at%20fb"))()
+    end)
+end)
+
+
 task.spawn(function()
     task.wait(2)
     UpdateAllESP()
