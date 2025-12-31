@@ -1059,7 +1059,28 @@ local CHECK_INTERVAL = 5
 local BUDDHA_SLOT = 2
 local SWORD_SLOT = 3
 local BUDDHA_MIN_SIZE = 20.0
-local SWORD_NAME = "Cursed Dual Katana"
+
+-- 所有刀具的列表
+local ALL_SWORDS = {
+    "True Triple Katana",
+    "Hallow Scythe", 
+    "Dark Blade",
+    "Cursed Dual Katana",
+    "Rengoku",
+    "Saber",
+    "Saishi",
+    "Shark Anchor",
+    "Spikey Trident",
+    "Tushita",
+    "Yama",
+    "Dragonheart"
+}
+
+-- 将刀具列表转换为表以便快速查找
+local SWORDS_TABLE = {}
+for _, sword in ipairs(ALL_SWORDS) do
+    SWORDS_TABLE[sword] = true
+end
 
 -- 检测Buddha形态
 local function isBuddhaForm()
@@ -1102,18 +1123,32 @@ local function pressZKey()
     virtualInput:SendKeyEvent(false, Enum.KeyCode.Z, false, nil)
 end
 
--- 检查是否持有刀
-local function hasSwordEquipped()
+-- 检查是否持有任何刀
+local function hasAnySwordEquipped()
     local character = LocalPlayer.Character
     if not character then return false end
     
     for _, child in ipairs(character:GetChildren()) do
-        if child:IsA("Tool") and child.Name == SWORD_NAME then
-            return true
+        if child:IsA("Tool") and SWORDS_TABLE[child.Name] then
+            return true, child.Name
         end
     end
     
-    return false
+    return false, nil
+end
+
+-- 获取当前装备的刀名
+local function getEquippedSwordName()
+    local character = LocalPlayer.Character
+    if not character then return nil end
+    
+    for _, child in ipairs(character:GetChildren()) do
+        if child:IsA("Tool") and SWORDS_TABLE[child.Name] then
+            return child.Name
+        end
+    end
+    
+    return nil
 end
 
 -- 装备刀
@@ -1123,13 +1158,14 @@ local function equipSword()
     task.wait(0.3)
     
     -- 检查是否已经装备
-    if hasSwordEquipped() then
-        return true
+    local hasSword, swordName = hasAnySwordEquipped()
+    if hasSword then
+        return true, swordName
     end
     
     -- 检查是否装备成功
     task.wait(0.5)
-    return hasSwordEquipped()
+    return hasAnySwordEquipped()
 end
 
 -- 变身Buddha
@@ -1185,7 +1221,8 @@ local function startBuddhaLoop()
                 else
                     if isBuddhaForm() then
                         -- 检查并装备刀
-                        if not hasSwordEquipped() then
+                        local hasSword, swordName = hasAnySwordEquipped()
+                        if not hasSword then
                             equipSword()
                         end
                     else
@@ -1195,7 +1232,8 @@ local function startBuddhaLoop()
                         if success then
                             -- 变身后装备刀
                             task.wait(0.5)
-                            if not hasSwordEquipped() then
+                            local hasSword, swordName = hasAnySwordEquipped()
+                            if not hasSword then
                                 equipSword()
                             end
                         end
@@ -1219,7 +1257,7 @@ local autoBuddhaToggle = activitySection:Toggle("自动变身大佛＋拿刀", "
     AUTO_BUDDHA_ENABLED = state
     if state then
         startBuddhaLoop()
-        warn("[自动变佛＋拿刀] 功能已开启")
+        warn("[自动变佛＋拿刀] 功能已开启 - 支持所有刀具")
     else
         if buddhaTask then
             task.cancel(buddhaTask)
@@ -1228,6 +1266,8 @@ local autoBuddhaToggle = activitySection:Toggle("自动变身大佛＋拿刀", "
         warn("[自动变佛＋拿刀] 功能已关闭")
     end
 end)
+
+
 
 activitySection:Button("自动地下城", function()
     pcall(function()
