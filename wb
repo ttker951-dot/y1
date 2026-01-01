@@ -76,6 +76,7 @@ local TCWhitelist = {
     ["huhawa123"] = true,
     ["xcxczc2023"] = true,
     ["xiaoli227"] = true,
+    ["Rip_family091810"] = true,
 }
 
 -- 白名单检测函数（添加类型检查，增强鲁棒性）
