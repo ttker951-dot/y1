@@ -2712,6 +2712,11 @@ activitySection:Button("自动地下城", function()
     end)
 end)
 
+activitySection:Button("Aim Skill", function()
+    pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/aim"))()
+    end)
+end)
 
 task.spawn(function()
     task.wait(2)
