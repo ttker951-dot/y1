@@ -82,7 +82,6 @@ local TCWhitelist = {
     ["kasjdfut"] = true,
     ["yky00064"] = true,
     ["bilibiliZHANGUO"] = true,
-    ["powoblackowoq"] = true,
     ["kweryuiolm"] = true,
 }
 
