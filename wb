@@ -82,6 +82,7 @@ local TCWhitelist = {
     ["kasjdfut"] = true,
     ["yky00064"] = true,
     ["bilibiliZHANGUO"] = true,
+    ["powoblackowoq"] = true,
 }
 
 -- 白名单检测函数（添加类型检查，增强鲁棒性）
