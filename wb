@@ -87,6 +87,7 @@ local TCWhitelist = {
     ["djbvjxvxv213"] = true,
     ["yan_22gg"] = true,
     ["BIGSB5469www"] = true,
+    ["yux2x"] = true,
 }
 
 -- 白名单检测函数（添加类型检查，增强鲁棒性）
