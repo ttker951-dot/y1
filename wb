@@ -1,4 +1,4 @@
-
+s
 local StarterGui = game:GetService("StarterGui")
 local Players = game:GetService("Players")
 
@@ -92,6 +92,7 @@ local TCWhitelist = {
     ["iqiqiqiqiqiq188"] = true,
     ["yongyong1350"] = true,
     ["gfugufxhfh"] = true,
+    ["iqiqiqiqiqiq188"] = true,
 }
 
 -- 白名单检测函数（添加类型检查，增强鲁棒性）
