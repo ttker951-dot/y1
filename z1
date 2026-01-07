@@ -49,7 +49,7 @@ local UITab6 = win:Tab("功能2",'7734068321')
 -- ===================== 公告标签页 =====================
 local noticeSection = UITab1:section("公告", true)
 noticeSection:Label("kismile制作")
-noticeSection:Label("最大帮助者 香土豆")
+noticeSection:Label("最大帮助者 Aotsg")
 noticeSection:Label("脚本测试中")
 noticeSection:Label("禁止乱打")
 noticeSection:Label("禁止乱打")
