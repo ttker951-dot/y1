@@ -775,7 +775,7 @@ for _, p in pairs(Players:GetPlayers()) do
 end
 
 -- 创建UI开关
-espSection:Toggle("ESP Pro 高级透视", "ESP_Pro_Switch", false, function(state)
+espSection:Toggle("ESP Pro ", "ESP_Pro_Switch", false, function(state)
     ESPProModule:SetState(state)
 end)
 
