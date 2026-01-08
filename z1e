@@ -775,31 +775,7 @@ end
 espSection:Toggle("ESP Pro ", "ESP_Pro_Switch", false, function(state)
     ESPProModule:SetState(state)
 end)
--- 透视UI绑定
-espSection:Toggle("ESP Main Switch", "ESP_Main", false, function(enabled)
-    ESPConfig.MainSwitch = enabled
-    UpdateAllESP()
-end)
 
-espSection:Toggle("Show Name + Distance", "ESP_NameDistance", false, function(enabled)
-    ESPConfig.ShowNameDistance = enabled
-    UpdateAllESP()
-end)
-
-espSection:Toggle("Show Health", "ESP_Health", false, function(enabled)
-    ESPConfig.ShowHealth = enabled
-    UpdateAllESP()
-end)
-
-espSection:Toggle("Tracer (Screen Center)", "ESP_Tracer", false, function(enabled)
-    ESPConfig.ShowTracer = enabled
-    UpdateAllESP()
-end)
-
-task.spawn(function()
-    task.wait(2)
-    UpdateAllESP()
-end)
 -- ===================== 传送标签页 =====================
 local tpMainSection = UITab5:section("Teleport", false)
 
