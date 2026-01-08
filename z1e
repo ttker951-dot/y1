@@ -771,6 +771,7 @@ task.spawn(function()
     end
 end)
 
+
 -- 透视UI绑定
 espSection:Toggle("ESP Main Switch", "ESP_Main", false, function(enabled)
     ESPConfig.MainSwitch = enabled
@@ -792,6 +793,10 @@ espSection:Toggle("Tracer (Screen Center)", "ESP_Tracer", false, function(enable
     UpdateAllESP()
 end)
 
+task.spawn(function()
+    task.wait(2)
+    UpdateAllESP()
+end)
 -- ===================== 传送标签页 =====================
 local tpMainSection = UITab5:section("Teleport", false)
 
@@ -876,178 +881,6 @@ end)
 
 -- ===================== 活动标签页（新增自动开佛拿刀） =====================
 local activitySection = UITab6:section("Features", true)
-
--- 初始化全局设置（果实相关）
-if not _G.Settings then
-    _G.Settings = {
-        Fruit = {
-            ["Auto Buy Candy Fruit"] = false,
-            ["Auto Store Fruit"] = false
-        }
-    }
-end
-
--- 初始化保存设置函数
-if not getgenv().SaveSetting then
-    getgenv().SaveSetting = function()
-    end
-end
-
--- 果实名称映射表（完整列表）
-local FruitMapping = {
-    {"Rocket Fruit", "Rocket-Rocket"},
-    {"Spin Fruit", "Spin-Spin"},
-    {"Blade Fruit", "Blade-Blade"},
-    {"Spring Fruit", "Spring-Spring"},
-    {"Bomb Fruit", "Bomb-Bomb"},
-    {"Smoke Fruit", "Smoke-Smoke"},
-    {"Spike Fruit", "Spike-Spike"},
-    {"Flame Fruit", "Flame-Flame"},
-    {"Eagle Fruit", "Eagle-Eagle"},
-    {"Ice Fruit", "Ice-Ice"},
-    {"Sand Fruit", "Sand-Sand"},
-    {"Dark Fruit", "Dark-Dark"},
-    {"Diamond Fruit", "Diamond-Diamond"},
-    {"Light Fruit", "Light-Light"},
-    {"Rubber Fruit", "Rubber-Rubber"},
-    {"Creation Fruit", "Creation-Creation"},
-    {"Ghost Fruit", "Ghost-Ghost"},
-    {"Magma Fruit", "Magma-Magma"},
-    {"Quake Fruit", "Quake-Quake"},
-    {"Buddha Fruit", "Buddha-Buddha"},
-    {"Love Fruit", "Love-Love"},
-    {"Spider Fruit", "Spider-Spider"},
-    {"Sound Fruit", "Sound-Sound"},
-    {"Phoenix Fruit", "Phoenix-Phoenix"},
-    {"Portal Fruit", "Portal-Portal"},
-    {"Lightning Fruit", "Lightning-Lightning"},
-    {"Pain Fruit", "Pain-Pain"},
-    {"Blizzard Fruit", "Blizzard-Blizzard"},
-    {"Gravity Fruit", "Gravity-Gravity"},
-    {"Mammoth Fruit", "Mammoth-Mammoth"},
-    {"T-Rex Fruit", "T-Rex-T-Rex"},
-    {"Dough Fruit", "Dough-Dough"},
-    {"Shadow Fruit", "Shadow-Shadow"},
-    {"Venom Fruit", "Venom-Venom"},
-    {"Gas Fruit", "Gas-Gas"},
-    {"Control Fruit", "Control-Control"},
-    {"Spirit Fruit", "Spirit-Spirit"},
-    {"Leopard Fruit", "Leopard-Leopard"},
-    {"Yeti Fruit", "Yeti-Yeti"},
-    {"Kitsune Fruit", "Kitsune-Kitsune"},
-    {"Dragon Fruit", "Dragon-Dragon"}
-}
-
--- 1. 自动用糖果抽果实功能
-local AutoCandyFruitToggle = activitySection:Toggle("Auto Spin with Candy", "AutoCandyFruitToggle", _G.Settings.Fruit["Auto Buy Candy Fruit"] or false, function(state)
-    _G.Settings.Fruit["Auto Buy Candy Fruit"] = state;
-    getgenv().SaveSetting()
-    if state then
-        warn("[Auto Spin] Function enabled")
-    else
-        warn("[Auto Spin] Function disabled")
-    end
-end);
-
-task.spawn(function()
-    while true do
-        task.wait(0.5)
-        pcall(function()
-            if _G.Settings.Fruit["Auto Buy Candy Fruit"] then
-                local CommF_Remote = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_", 5)
-                if CommF_Remote and math.random(1, 5) == 1 then
-                    local checkArgs = {"Cousin", "CheckCanBuyType", "F2PXmasWeek2Gacha25"}
-                    CommF_Remote:InvokeServer(unpack(checkArgs))
-                end
-
-                if CommF_Remote then
-                    local drawArgs = {"Cousin", "F2PXmasWeek2Gacha25"}
-                    CommF_Remote:InvokeServer(unpack(drawArgs))
-                end
-
-                local GetIsComingSoon_Remote = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("GetIsComingSoon", 5)
-                if GetIsComingSoon_Remote and math.random(1, 10) == 1 then
-                    GetIsComingSoon_Remote:InvokeServer()
-                end
-            end
-        end)
-    end
-end);
-
--- 2. 修复版自动存储果实功能
-local AutoStoreFruitToggle = activitySection:Toggle("Auto Store Fruits", "AutoStoreFruitToggle", _G.Settings.Fruit["Auto Store Fruit"] or false, function(state)
-    _G.Settings.Fruit["Auto Store Fruit"] = state;
-    getgenv().SaveSetting();
-    getgenv().AutoStoreFruit = state
-    if state then
-        warn("[Auto Store Fruits] Function enabled")
-    else
-        warn("[Auto Store Fruits] Function disabled")
-    end
-end);
-
--- 自动存储核心循环（修复版）
-task.spawn(function()
-    while true do
-        task.wait(0.2)
-        if not getgenv().AutoStoreFruit then
-            continue
-        end
-
-        local success, err = pcall(function()
-            local LocalPlayer = game:GetService("Players").LocalPlayer
-            if not LocalPlayer then return end
-
-            local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            if not Character then return end
-
-            local Backpack = LocalPlayer:WaitForChild("Backpack", 5)
-            if not Backpack then
-                warn("[Auto Store] Backpack load timeout")
-                return
-            end
-
-            local Remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes", 5)
-            local CommF_Remote = Remotes and Remotes:WaitForChild("CommF_", 5)
-            if not CommF_Remote then
-                warn("[Auto Store] CommF_ remote function not found")
-                return
-            end
-
-            for _, fruitData in ipairs(FruitMapping) do
-                local fruitName = fruitData[1]
-                local fruitKey = fruitData[2]
-
-                local fruitObj = Backpack:FindFirstChild(fruitName) or Character:FindFirstChild(fruitName)
-                if fruitObj then
-                    local callSuccess, callErr = pcall(function()
-                        CommF_Remote:InvokeServer("StoreFruit", fruitKey, fruitObj)
-                    end)
-
-                    if callSuccess then
-                        warn("[Auto Store] Successfully stored: ", fruitName)
-                        task.wait(0.1)
-                        if fruitObj.Parent then
-                            fruitObj:Destroy()
-                        end
-                        break
-                    else
-                        warn("[Auto Store] Storage failed: ", fruitName, "Error: ", callErr)
-                        local simpleArgs = {"StoreFruit", fruitKey:gsub("-", "")}
-                        pcall(function()
-                            CommF_Remote:InvokeServer(unpack(simpleArgs))
-                            warn("[Auto Store] Successfully stored with simplified args: ", fruitName)
-                        end)
-                    end
-                end
-            end
-        end)
-
-        if not success then
-            warn("[Auto Store] Execution error: ", err)
-        end
-    end
-end)
 
 -- ===================== 新增：自动开佛拿刀功能 =====================
 -- 配置
@@ -1273,10 +1106,18 @@ activitySection:Button("Auto Dungeon", function()
 end)
 
 
-task.spawn(function()
-    task.wait(2)
-    UpdateAllESP()
+activitySection:Button("Aim Skill", function()
+    pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/aim"))()
+    end)
 end)
+
+activitySection:Button("New Attack (Can Use Fruit M1)", function()
+    pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/New%20attack"))()
+    end)
+end)
+
 
 -- 加载完成提示
 game:GetService("StarterGui"):SetCore("SendNotification",{
