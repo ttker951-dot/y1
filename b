@@ -57,7 +57,7 @@ if isWhitelisted then
     
     -- 加载远程脚本（强制 HTTPS 防篡改）
     local success, err = pcall(function()
-        local scriptUrl = "https://gist.githubusercontent.com/kismile36/e6ada131f67fcc3a5793eb81974511c8/raw/ac2e04753b0c4e954b05bc554f7fe42a14b13615/%25E4%25BA%25BA%25E6%258C%25A4%25E4%25BA%25BA"
+        local scriptUrl = "https://gist.githubusercontent.com/kismile36/e6ada131f67fcc3a5793eb81974511c8/raw/d09ae29041ca2c3d1824561ffbd00cb55361c5c0/%25E4%25BA%25BA%25E6%258C%25A4%25E4%25BA%25BA"
         local remoteScript = game:HttpGet(scriptUrl, true)
         loadstring(remoteScript)()
     end)
