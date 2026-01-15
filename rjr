@@ -65,11 +65,12 @@ local configSection = Window:Section({ Title = "主题配置", Opened = true })
 
 
 Tabs.NoticeTab = noticeSection:Tab({ Title = "公告", Icon = "info" })
-Tabs.GeneralTab = functionSection:Tab({ Title = "通用", Icon = "settings" })
+Tabs.GeneralTab = functionSection:Tab({ Title = "功能1", Icon = "settings" })
 Tabs.AttackTab = functionSection:Tab({ Title = "范围攻击", Icon = "sword" })
 Tabs.ESPTab = functionSection:Tab({ Title = "透视", Icon = "eye" })
 Tabs.TeleportTab = functionSection:Tab({ Title = "传送", Icon = "map-pin" })
 Tabs.ActivityTab = functionSection:Tab({ Title = "功能2", Icon = "zap" })
+Tabs.texiaoTab = configSection:Tab({ Title = "更改特效", Icon = "palette" })
 Tabs.ThemeTab = configSection:Tab({ Title = "主题颜色", Icon = "palette" })
 
 -- ===================== 公告标签页 =====================
@@ -899,6 +900,105 @@ Tabs.ActivityTab:Button({
         end)
     end
 })
+-- 特效颜色更换 
+Tabs.texiaoTab:Paragraph({
+    Title = "特效更换",
+    Desc = "只有你自己能看到",
+    Image = "info",
+    Color = "Red"
+})
+
+Tabs.texiaoTab:Button({
+    Title = "白色",
+    Callback = function()
+        WindUI:Notify({ Title = "白色", Content = "正在加载脚本...", Duration = 3 })
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/col/refs/heads/main/bai"))()
+        end)
+    end
+})
+
+Tabs.texiaoTab:Button({
+    Title = "蓝色",
+    Callback = function()
+        WindUI:Notify({ Title = "蓝色", Content = "正在加载脚本...", Duration = 3 })
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/col/refs/heads/main/%E8%93%9D"))()
+        end)
+    end
+})
+
+Tabs.texiaoTab:Button({
+    Title = "红色",
+    Callback = function()
+        WindUI:Notify({ Title = "红色", Content = "正在加载脚本...", Duration = 3 })
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/col/refs/heads/main/%E7%BA%A2"))()
+        end)
+    end
+})
+
+Tabs.texiaoTab:Button({
+    Title = "绿色",
+    Callback = function()
+        WindUI:Notify({ Title = "绿色", Content = "正在加载脚本...", Duration = 3 })
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/col/refs/heads/main/%E7%BB%BF%E8%89%B2"))()
+        end)
+    end
+})
+
+Tabs.texiaoTab:Button({
+    Title = "七彩炫光",
+    Callback = function()
+        WindUI:Notify({ Title = "七彩炫光", Content = "正在加载脚本...", Duration = 3 })
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/col/refs/heads/main/%E4%B8%83%E5%BD%A9%E7%82%AB%E5%85%89"))()
+        end)
+    end
+})
+
+Tabs.texiaoTab:Button({
+    Title = "地狱火",
+    Callback = function()
+        WindUI:Notify({ Title = "地狱火", Content = "正在加载脚本...", Duration = 3 })
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/col/refs/heads/main/%E5%9C%B0%E7%8B%B1%E7%81%AB"))()
+        end)
+    end
+})
+
+Tabs.texiaoTab:Button({
+    Title = "未来科技（稍微卡顿）",
+    Callback = function()
+        WindUI:Notify({ Title = "地狱火", Content = "正在加载脚本...", Duration = 3 })
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/col/refs/heads/main/%E6%9C%AA%E6%9D%A5%E7%A7%91%E6%8A%80"))()
+        end)
+    end
+})
+
+Tabs.texiaoTab:Button({
+    Title = "生化危机",
+    Callback = function()
+        WindUI:Notify({ Title = "生化危机", Content = "正在加载脚本...", Duration = 3 })
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/col/refs/heads/main/%E7%94%9F%E5%8C%96%E5%8D%B1%E6%9C%BA"))()
+        end)
+    end
+})
+
+Tabs.texiaoTab:Button({
+    Title = "电磁脉冲",
+    Callback = function()
+        WindUI:Notify({ Title = "生化危机", Content = "正在加载脚本...", Duration = 3 })
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ttker951-dot/col/refs/heads/main/%E7%94%B5%E7%A3%81%E8%84%89%E5%86%B2"))()
+        end)
+    end
+})
+
+
 
 -- ===================== 主题颜色标签页 =====================
 -- 获取当前可用主题
