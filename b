@@ -84,7 +84,7 @@ if isWhitelisted then
     
     -- 加载远程脚本（强制 HTTPS 防篡改）
     local success, err = pcall(function()
-        local scriptUrl = "https://pastebin.com/raw/z5yRigrJ"
+        local scriptUrl = "https://raw.githubusercontent.com/ttker951-dot/y1/refs/heads/main/rjr"
         local remoteScript = game:HttpGet(scriptUrl, true)
         loadstring(remoteScript)()
     end)
