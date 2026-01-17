@@ -60,7 +60,7 @@ local TCWhitelist = {
     [8333444648] = true,
     [2991800312] = true,
     [1611701218] = true,
-    [1123] = true,
+    [4193005778] = true,
     [1123] = true,
     [1123] = true,
 }
