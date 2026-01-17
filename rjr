@@ -871,18 +871,10 @@ end)
 
 Tabs.ActivityTab:Divider()
 
-Tabs.ActivityTab:Button({
-    Title = "自动地下城",
-    Callback = function()
-        WindUI:Notify({ Title = "自动地下城", Content = "正在加载脚本...", Duration = 3 })
-        pcall(function()
-            loadstring(game:HttpGet("https://gist.githubusercontent.com/kismile36/e6ada131f67fcc3a5793eb81974511c8/raw/49fd45ac4b1164135fb81de2fda6231af55cb436/%25E8%2587%25AA%25E5%258A%25A8%25E5%2589%25AF%25E6%259C%25AC"))()
-        end)
-    end
-})
+
 
 Tabs.ActivityTab:Button({
-    Title = "Aim Skill",
+    Title = "aimbot",
     Callback = function()
         WindUI:Notify({ Title = "Aim Skill", Content = "正在加载脚本...", Duration = 3 })
         pcall(function()
@@ -892,7 +884,7 @@ Tabs.ActivityTab:Button({
 })
 
 Tabs.ActivityTab:Button({
-    Title = "New Attack",
+    Title = "果实m1",
     Callback = function()
         WindUI:Notify({ Title = "New Attack", Content = "正在加载脚本...", Duration = 3 })
         pcall(function()
