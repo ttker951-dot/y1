@@ -1,0 +1,149 @@
+-- 缓存核心服务
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- 全局/模块级安全模式状态（替代原_G.SafeMode，更安全）
+local isSafeModeActive = false
+
+-- 核心：创建UI容器和控件
+local function createSafeModeUI()
+    -- 1. 创建ScreenGui（UI根容器）
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "SafeModeUI"
+    ScreenGui.Parent = PlayerGui
+    ScreenGui.IgnoreGuiInset = true -- 忽略屏幕边缘内边距
+    ScreenGui.DisplayOrder = 100 -- 确保UI在顶层显示
+
+    -- 2. 创建主框架（承载开关和提示文本）
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Parent = ScreenGui
+    MainFrame.Size = UDim2.new(0, 280, 0, 100) -- 宽280，高100
+    MainFrame.Position = UDim2.new(0.05, 0, 0.05, 0) -- 左上角偏移显示
+    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- 深灰色背景
+    MainFrame.BorderColor3 = Color3.fromRGB(80, 80, 80) -- 边框颜色
+    MainFrame.BorderSizePixel = 2
+
+    -- 修复：添加UICorner实例实现MainFrame圆角（替代直接赋值CornerRadius）
+    local MainFrameUICorner = Instance.new("UICorner")
+    MainFrameUICorner.Name = "MainFrameUICorner"
+    MainFrameUICorner.Parent = MainFrame
+    MainFrameUICorner.CornerRadius = UDim.new(0, 10) -- 圆角半径10像素
+
+    -- 3. 创建状态提示文本
+    local StatusText = Instance.new("TextLabel")
+    StatusText.Name = "StatusText"
+    StatusText.Parent = MainFrame
+    StatusText.Size = UDim2.new(1, 0, 0, 40)
+    StatusText.Position = UDim2.new(0, 0, 0, 10)
+    StatusText.BackgroundTransparency = 1 -- 透明背景
+    StatusText.TextColor3 = Color3.fromRGB(255, 255, 255) -- 白色文本
+    StatusText.Font = Enum.Font.SourceSansBold
+    StatusText.TextSize = 18
+    StatusText.Text = "安全模式状态：已关闭" -- 初始状态提示
+    StatusText.TextXAlignment = Enum.TextXAlignment.Center -- 水平居中
+
+    -- 4. 创建切换按钮（核心交互控件）
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Name = "ToggleButton"
+    ToggleButton.Parent = MainFrame
+    ToggleButton.Size = UDim2.new(0, 200, 0, 35)
+    ToggleButton.Position = UDim2.new(0.5, -100, 0, 60) -- 水平居中
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60) -- 初始红色（关闭状态）
+    ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleButton.Font = Enum.Font.SourceSansBold
+    ToggleButton.TextSize = 16
+    ToggleButton.Text = "开启安全模式"
+
+    -- 修复：添加UICorner实例实现ToggleButton圆角（替代直接赋值CornerRadius）
+    local ButtonUICorner = Instance.new("UICorner")
+    ButtonUICorner.Name = "ButtonUICorner"
+    ButtonUICorner.Parent = ToggleButton
+    ButtonUICorner.CornerRadius = UDim.new(0, 8) -- 圆角半径8像素
+
+    -- 5. 按钮点击事件（切换安全模式核心逻辑）
+    local function toggleSafeMode()
+        -- 切换状态
+        isSafeModeActive = not isSafeModeActive
+
+        -- 更新UI显示（按钮样式+状态文本）
+        if isSafeModeActive then
+            -- 安全模式开启：按钮变绿色，更新文本
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 220, 60)
+            ToggleButton.Text = "关闭安全模式"
+            StatusText.Text = "安全模式状态：已开启"
+            StatusText.TextColor3 = Color3.fromRGB(60, 220, 60)
+            
+            -- 此处可添加安全模式开启后的核心逻辑（如角色上移，延续你之前的需求）
+            warn("安全模式已开启，执行安全逻辑...")
+            executeSafeModeLogic()
+        else
+            -- 安全模式关闭：按钮变红色，更新文本
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
+            ToggleButton.Text = "开启安全模式"
+            StatusText.Text = "安全模式状态：已关闭"
+            StatusText.TextColor3 = Color3.fromRGB(255, 255, 255)
+            
+            -- 此处可添加安全模式关闭后的清理逻辑
+            warn("安全模式已关闭，停止安全逻辑...")
+            stopSafeModeLogic()
+        end
+    end
+
+    -- 绑定按钮点击事件
+    ToggleButton.MouseButton1Click:Connect(toggleSafeMode)
+
+    -- 6. 安全模式核心逻辑（延续你之前的需求：角色上移至安全区域）
+    local safeModeLoop = nil -- 存储循环连接，用于停止轮询
+    local HumanoidRootPart = nil -- 缓存角色根部件
+
+    -- 监听角色加载，确保获取有效根部件
+    local function onCharacterAdded(character)
+        HumanoidRootPart = character:WaitForChild("HumanoidRootPart", 5)
+    end
+
+    -- 绑定角色加载事件
+    if LocalPlayer.Character then
+        onCharacterAdded(LocalPlayer.Character)
+    end
+    LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+
+    -- 开启安全模式时执行的逻辑
+    function executeSafeModeLogic()
+        -- 先断开已有循环，避免重复运行
+        if safeModeLoop then
+            safeModeLoop:Disconnect()
+        end
+
+        -- 启动心跳循环，执行角色上移动作
+        safeModeLoop = RunService.Heartbeat:Connect(function()
+            if not HumanoidRootPart or not HumanoidRootPart:IsDescendantOf(game) then
+                return -- 根部件无效时跳过
+            end
+            -- 核心：角色向上移动200单位（延续你原有的逻辑）
+            HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(0, 500, 0)
+        end)
+    end
+
+    -- 关闭安全模式时执行的清理逻辑
+    function stopSafeModeLogic()
+        -- 断开循环，停止角色上移
+        if safeModeLoop then
+            safeModeLoop:Disconnect()
+            safeModeLoop = nil
+        end
+    end
+
+    -- 返回UI对象，方便后续扩展
+    return {
+        ScreenGui = ScreenGui,
+        MainFrame = MainFrame,
+        isSafeModeActive = function() return isSafeModeActive end
+    }
+end
+
+-- 初始化创建安全模式UI
+local SafeModeUI = createSafeModeUI()
